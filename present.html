@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom data in Bob</title>
+<style>
+  :root{
+    --bg:#fbfaf9; --ink:#1b1417; --ink-2:#44393e; --muted:#72666b; --rule:#e2dcde;
+    --accent:#780d3a; --accent-2:#d01d73; --accent-soft:#f6e9ee;
+    --s: min(.74vw, 1.316vh);        /* one unit, sized for a 16:9 screen */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);overflow:hidden;cursor:default;
+    font:calc(var(--s)*2.4)/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+
+  /* stage: every slide shares the same left edge and title line */
+  .slide{display:none;position:absolute;inset:0;padding:calc(var(--s)*8.5) calc(var(--s)*9) 0}
+  .slide.on{display:block}
+  .slide.stmt{padding-top:calc(var(--s)*15)}
+
+  .t{font-size:calc(var(--s)*4.2);line-height:1.13;letter-spacing:-.022em;font-weight:650;margin:0;max-width:24em}
+  .big{font-size:calc(var(--s)*5.6);line-height:1.1;letter-spacing:-.028em;font-weight:660;margin:0;max-width:15em}
+  .eyebrow{font-size:calc(var(--s)*1.9);font-weight:600;color:var(--accent-2);margin:0 0 calc(var(--s)*2.2)}
+  .under{font-size:calc(var(--s)*2.4);color:var(--muted);margin:calc(var(--s)*3.2) 0 0;max-width:36em;line-height:1.4}
+  .body{margin-top:calc(var(--s)*5)}
+  .note{font-size:calc(var(--s)*2.2);color:var(--ink-2);margin-top:calc(var(--s)*3.8);
+    padding-left:calc(var(--s)*1.8);border-left:calc(var(--s)*.4) solid var(--accent-2);max-width:44em;line-height:1.4}
+  .fine{font-size:calc(var(--s)*1.7);color:var(--muted);margin-top:calc(var(--s)*3)}
+
+  /* numbered points */
+  .pts{display:grid;gap:calc(var(--s)*4.5)}
+  .pts.c2{grid-template-columns:1fr 1fr} .pts.c3{grid-template-columns:repeat(3,1fr)}
+  .pt{border-top:2px solid var(--ink);padding-top:calc(var(--s)*2)}
+  .pt .n{font-size:calc(var(--s)*1.9);font-weight:700;color:var(--accent-2);margin-bottom:calc(var(--s)*1.4)}
+  .pt .it{font-size:calc(var(--s)*2.9);font-weight:630;line-height:1.2;letter-spacing:-.012em}
+  .pt .sub{font-size:calc(var(--s)*2);color:var(--muted);margin-top:calc(var(--s)*1.3);line-height:1.4}
+
+  /* evidence images */
+  .shots{display:flex;gap:calc(var(--s)*4);align-items:flex-start}
+  .shot{margin:0}
+  .shot img{display:block;border:1px solid var(--rule);border-radius:calc(var(--s)*.8);
+    box-shadow:0 calc(var(--s)*.4) calc(var(--s)*2) rgba(60,20,35,.08);background:#fff}
+  .shot figcaption{font-size:calc(var(--s)*1.8);color:var(--muted);margin-top:calc(var(--s)*1.4);line-height:1.35;max-width:32em}
+  .shot figcaption b{color:var(--ink);font-weight:620}
+
+  /* label / value rows */
+  .rows{border-top:1px solid var(--rule)}
+  .r{display:grid;grid-template-columns:calc(var(--s)*30) 1fr;gap:calc(var(--s)*3);align-items:baseline;
+    padding:calc(var(--s)*1.4) 0;border-bottom:1px solid var(--rule)}
+  .r .k{font-size:calc(var(--s)*2.2);font-weight:640}
+  .r .v{font-size:calc(var(--s)*2.2);color:var(--muted)}
+
+  /* flow steps (prototype) */
+  .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--s)*1.4)}
+  .step{background:#fff;border:1px solid var(--rule);border-radius:calc(var(--s)*1.2);padding:calc(var(--s)*2.2);
+    min-height:calc(var(--s)*20)}
+  .step .n{font-size:calc(var(--s)*1.8);font-weight:700;color:var(--accent-2)}
+  .step .it{font-size:calc(var(--s)*2.5);font-weight:640;line-height:1.2;margin-top:calc(var(--s)*1.2)}
+  .step .sub{font-size:calc(var(--s)*1.8);color:var(--muted);margin-top:calc(var(--s)*1.2);line-height:1.35}
+  .step.hl{border:2px solid var(--accent-2)}
+
+  /* two tracks */
+  .tracks{display:grid;grid-template-columns:1.25fr 1fr;gap:calc(var(--s)*4)}
+  .track{border-radius:calc(var(--s)*1.2);padding:calc(var(--s)*3)}
+  .track.main{background:var(--accent);color:#fff}
+  .track.alt{border:2px solid var(--rule);background:#fff}
+  .track .lb{font-size:calc(var(--s)*1.8);font-weight:650;opacity:.85;margin-bottom:calc(var(--s)*1.2)}
+  .track.alt .lb{color:var(--accent-2);opacity:1}
+  .track .it{font-size:calc(var(--s)*3.1);font-weight:650;line-height:1.15;letter-spacing:-.015em}
+  .track ul{margin:calc(var(--s)*2) 0 0;padding-left:1.1em;font-size:calc(var(--s)*2.1);line-height:1.45}
+  .track.alt ul{color:var(--ink-2)}
+
+  /* phases timeline */
+  .phases{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--rule);margin-top:calc(var(--s)*8)}
+  .ph{position:relative;padding:calc(var(--s)*3.2) calc(var(--s)*3) 0 0}
+  .ph::before{content:"";position:absolute;top:calc(var(--s)*-1);left:0;width:calc(var(--s)*1.8);height:calc(var(--s)*1.8);
+    border-radius:50%;background:#cdc4c8}
+  .ph.start::before{background:var(--accent-2)}
+  .ph .n{font-size:calc(var(--s)*5);font-weight:700;line-height:1;color:#cdc4c8;margin-bottom:calc(var(--s)*1.4)}
+  .ph.start .n{color:var(--accent-2)}
+  .ph .it{font-size:calc(var(--s)*2.6);font-weight:630;line-height:1.2;letter-spacing:-.01em}
+  .ph .sub{font-size:calc(var(--s)*1.85);color:var(--muted);margin-top:calc(var(--s)*1.2);line-height:1.35}
+  .ph .flag{position:absolute;top:calc(var(--s)*-5.2);left:0;font-size:calc(var(--s)*1.9);font-weight:650;color:var(--accent-2)}
+  .ph .tag{display:inline-block;font-size:calc(var(--s)*1.5);font-weight:650;color:var(--accent);background:var(--accent-soft);
+    border-radius:calc(var(--s)*.6);padding:calc(var(--s)*.3) calc(var(--s)*.9);margin-bottom:calc(var(--s)*1)}
+
+  /* measures */
+  .measure-label{font-size:calc(var(--s)*1.9);font-weight:650;color:var(--accent-2);margin-bottom:calc(var(--s)*1.4)}
+  .measure-main{font-size:calc(var(--s)*3.6);font-weight:650;line-height:1.14;letter-spacing:-.02em;max-width:24em}
+
+  .btn{display:inline-block;margin-top:calc(var(--s)*4);background:var(--accent-2);color:#fff;text-decoration:none;
+    font-weight:640;font-size:calc(var(--s)*2.4);padding:calc(var(--s)*1.6) calc(var(--s)*3.2);border-radius:calc(var(--s)*.8)}
+  .btn.todo{background:#fff;color:var(--muted);border:2px dashed #cdc4c8}
+  q{quotes:"\201C" "\201D"}
+
+  /* comparison table */
+  .cmp{width:100%;border-collapse:collapse;font-size:calc(var(--s)*2)}
+  .cmp th{text-align:left;font-size:calc(var(--s)*1.7);font-weight:650;color:var(--muted);padding:0 calc(var(--s)*2) calc(var(--s)*1.2) 0;border-bottom:2px solid var(--ink)}
+  .cmp td{padding:calc(var(--s)*1.15) calc(var(--s)*2) calc(var(--s)*1.15) 0;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.35;color:var(--ink-2)}
+  .cmp td:first-child{font-weight:650;color:var(--ink);white-space:nowrap}
+  .cmp tr.us td{background:var(--accent-soft)}
+  .cmp tr.us td:first-child{color:var(--accent)}
+  .cmp .src{font-size:calc(var(--s)*1.4);color:var(--muted)}
+
+  /* tradeoffs */
+  .trade{display:grid;grid-template-columns:repeat(2,1fr);gap:calc(var(--s)*2.4) calc(var(--s)*4)}
+  .tr{border-top:2px solid var(--ink);padding-top:calc(var(--s)*1.6)}
+  .tr .vs{font-size:calc(var(--s)*2.5);font-weight:650;line-height:1.2}
+  .tr .vs span{color:var(--muted);font-weight:500}
+  .tr .pick{font-size:calc(var(--s)*2);color:var(--ink-2);margin-top:calc(var(--s)*1);line-height:1.4}
+  .tr .pick b{color:var(--accent-2);font-weight:650}
+
+  /* speaker notes: hidden while presenting, N toggles an overlay, always printed */
+  .notes{display:none}
+  body.shownotes .slide.on .notes{display:block;position:fixed;left:0;right:0;bottom:0;max-height:38vh;overflow:auto;
+    background:#fff;border-top:2px solid var(--accent-2);padding:calc(var(--s)*2) calc(var(--s)*9);
+    font-size:calc(var(--s)*1.9);line-height:1.45;color:var(--ink-2);box-shadow:0 -6px 24px rgba(0,0,0,.08)}
+  .notes p{margin:0 0 .6em}
+  .notes .h{font-weight:700;color:var(--accent);font-size:.85em;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.5em}
+
+  /* minimal chrome */
+  .prog{position:fixed;left:0;bottom:0;height:calc(var(--s)*.4);background:var(--accent-2);transition:width .25s}
+  #count{position:fixed;right:calc(var(--s)*3);bottom:calc(var(--s)*1.8);font-size:calc(var(--s)*1.6);
+    color:#a99ea3;font-variant-numeric:tabular-nums}
+
+  /* reading version (?read): every slide stacked, its notes underneath, scroll to read */
+  html.read{--w:min(94vw,1280px);--s:calc(var(--w)*.0074)}
+  html.read,html.read body{height:auto;overflow:auto;cursor:auto}
+  html.read body{background:#efeaec;padding:calc(var(--s)*4) 0}
+  html.read .slide{display:block;position:relative;inset:auto;width:var(--w);height:calc(var(--w)*.5625);margin:0 auto;
+    background:var(--bg);border-radius:10px 10px 0 0;box-shadow:0 2px 14px rgba(60,20,35,.10);overflow:hidden}
+  html.read .notes.moved{display:block;width:var(--w);margin:0 auto calc(var(--s)*6);background:#fff;border-radius:0 0 10px 10px;
+    border-top:1px solid var(--rule);padding:calc(var(--s)*3) calc(var(--s)*9) calc(var(--s)*2.4);
+    font-size:max(15px,calc(var(--s)*1.9));line-height:1.55;color:var(--ink-2);box-shadow:0 6px 14px rgba(60,20,35,.08)}
+  html.read .prog,html.read #count{display:none}
+  html.read .slide::after{content:attr(data-n);position:absolute;right:calc(var(--s)*3);bottom:calc(var(--s)*1.8);font-size:calc(var(--s)*1.6);color:#a99ea3}
+  .readhead{display:none}
+  html.read .readhead{display:block;width:var(--w);margin:0 auto calc(var(--s)*3);font-size:max(14px,calc(var(--s)*1.8));color:var(--muted)}
+
+  /* print: one page per slide, the slide on top and its notes underneath */
+  @media print{
+    @page{size:1280px 1040px;margin:0}
+    :root{--s:9.5px}
+    html,body{height:auto;overflow:visible;background:#fff}
+    .slide{display:block !important;position:relative;inset:auto;width:1280px;height:1040px;
+      page-break-after:always;break-after:page;background:var(--bg)}
+    .slide::after{content:"";position:absolute;left:0;right:0;top:720px;border-top:1px solid var(--rule)}
+    .slide .notes{display:block !important;position:absolute;left:115px;right:115px;top:744px;
+      font-size:15px;line-height:1.5;color:var(--ink-2)}
+    .prog,#count{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide stmt">
+  <p class="eyebrow">HiBob · Core HR · Configurable data structures</p>
+  <p class="big">Customers can add their own data to Bob. Getting it to work for them is the hard part.</p>
+  <p class="under" style="color:var(--ink-2)">My recommendation: custom objects that admins set up with AI, and that work across Bob from day one.</p>
+  <p class="under" style="margin-top:calc(var(--s)*6)">Roy · September 2026</p>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>The brief asks how enterprise customers can model their own HR data safely and use it across Bob.</p>
+    <p>My starting point: Bob already lets admins add custom fields and tables. So the gap isn't "can they add data". It's everything around it: setting it up well, keeping it safe and tidy, and using it in reports and in Bob's AI.</p>
+    <p>Everything I show about today's Bob comes from the demo environment you shared. It's a demo company, so some of the mess was made by people demoing. I lean on how the product works, which is true for every customer, and use the demo only as an illustration.</p>
+  </aside>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <p class="eyebrow">Who it's for</p>
+  <h2 class="t">The People Ops admin at an enterprise customer that keeps growing</h2>
+  <div class="body pts c3">
+    <div class="pt"><div class="n">What they have</div>
+      <div class="it">Data that doesn't fit the standard fields</div>
+      <div class="sub">Assets, certifications, allowances, agreements, country-specific employment details.</div></div>
+    <div class="pt"><div class="n">What they do today</div>
+      <div class="it">Workarounds</div>
+      <div class="sub">Custom fields, spreadsheets, manual notes, separate reports, help from HiBob's implementation team.</div></div>
+    <div class="pt"><div class="n">What they need</div>
+      <div class="it">To set it up themselves, safely, and use it anywhere in Bob</div>
+      <div class="sub">In profiles, reports, workflows, and when they ask Bob's AI.</div></div>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>You told me the need comes mostly from existing enterprise customers as they scale, and also from new strategic deals that need "robust repositories and complex organizational structures".</p>
+    <p>I'm designing for the customer's own People Ops or HRIS admin, the person who sets Bob up. HiBob's implementation team benefits too, but they're not the main user here.</p>
+    <p>The first two columns come from the brief. The third is my framing of the goal: self-serve setup, safe by design, and data that's usable everywhere, not just stored.</p>
+  </aside>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <p class="eyebrow">Why it's hard today</p>
+  <h2 class="t">Setup is one field at a time, on a person, and access comes later</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr calc(var(--s)*50);gap:calc(var(--s)*5);margin-top:calc(var(--s)*4)">
+    <div class="pts" style="gap:calc(var(--s)*2)">
+      <div class="pt" style="padding-top:calc(var(--s)*1.4)"><div class="it">Everything hangs off the employee</div>
+        <div class="sub">Fields and tables are set up for people's profiles, so a laptop lives on whoever has it.</div></div>
+      <div class="pt" style="padding-top:calc(var(--s)*1.4)"><div class="it">One piece at a time</div>
+        <div class="sub">A new table starts empty and columns are added one by one. Dates can't be validated.</div></div>
+      <div class="pt" style="padding-top:calc(var(--s)*1.4)"><div class="it">Access is a separate, later step</div>
+        <div class="sub">New fields and tables default to "All permissions off". Safe, but easy to forget.</div></div>
+    </div>
+    <figure class="shot"><img src="img/ev-permissions.png" alt="Add field, Permissions tab: All permissions off by default" style="width:100%">
+      <figcaption><b>Add field → Permissions.</b> The default, and a warning that inheriting can still mean "no access".</figcaption></figure>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>This is how the product works for every customer, not just the demo. I walked through every "create" screen without saving anything: Add category, Add field, Add table, Add column.</p>
+    <p>Field types are Text, Text area, Date, Number, List, Multi-select list, Currency, Employee reference, Hierarchical list and Document. Text can have a character limit or a pattern. For dates, Bob says "We cannot validate values for this type", so there's no way to require an expiry date in the future.</p>
+    <p>A category is just a name and a description. A table is a name, a description and a default permission. I saw no templates or suggestions in any of these screens.</p>
+    <p>"All permissions off" is the safe choice, and I'd keep that spirit. The problem is that access is decided later and elsewhere, so data can end up created but invisible.</p>
+  </aside>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <p class="eyebrow">What that leads to: one example</p>
+  <h2 class="t">In the demo company, one laptop is tracked in 8 different places</h2>
+  <div class="body shots" style="margin-top:calc(var(--s)*3.4);gap:calc(var(--s)*6)">
+    <figure class="shot"><img src="img/ev-laptop-search.png" alt="Searching People's data fields for 'laptop': 1 category, 2 tables, 5 fields" style="height:calc(var(--s)*36)">
+      <figcaption style="max-width:calc(var(--s)*42)"><b>Searching the settings for "laptop":</b> 1 category, 2 tables and 5 fields, spread across 5 categories.</figcaption></figure>
+    <figure class="shot"><img src="img/ev-asset-table.png" alt="Asset Management table columns: Laptop, Mouse, Keyboard, all typed as Date" style="width:calc(var(--s)*34)">
+      <figcaption style="max-width:calc(var(--s)*34)"><b>Inside the Asset Management table:</b> each item is a column, and each column is a date. Nothing says which laptop.</figcaption></figure>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>Laptops are the clearest example I found, not the product I'd build. HR systems don't need to become IT asset management. The point is the shape of the data: records with their own life that link to people. Allowances, agreements, and country-specific details from the brief have the same shape.</p>
+    <p>All of this is under System Settings → Data management → People's data fields, one page with about 90 categories. Asset Management has a "Laptop Serial Number" field, a table whose columns are Laptop, Mouse and Keyboard (all dates), and a separate "Laptop" table with a serial number. There are also categories called "Laptoop", "Employment equipment" and "IT Requirements".</p>
+    <p>The same pattern shows up elsewhere: three categories called "Skills", fields named "Skill 1 / Skill 2 / Skill 3", and certifications in three unrelated fields with no expiry date.</p>
+    <p>Some of this is demo noise. But it's what the product allows, and nothing in setup warns about it.</p>
+  </aside>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <p class="eyebrow">Why it matters now</p>
+  <h2 class="t">Bob's AI can only use data it can find. In the demo, it couldn't find this</h2>
+  <p class="under" style="margin-top:calc(var(--s)*1.6);font-size:calc(var(--s)*2.1);color:var(--ink-2)">The report builder also finds nothing for "laptop", "serial" or "asset", and table import doesn't offer the Laptop table.</p>
+  <div class="body shots" style="margin-top:calc(var(--s)*2.8);gap:calc(var(--s)*6)">
+    <figure class="shot"><img src="img/ev-reports-ai.png" alt="Reports AI: there is no custom field named laptop serial number" style="height:calc(var(--s)*31)">
+      <figcaption style="max-width:calc(var(--s)*36)"><b>Reports AI</b>, asked for laptop serial numbers: <q>there is no standard or custom field named 'laptop serial number'</q></figcaption></figure>
+    <figure class="shot"><img src="img/ev-companion.png" alt="Companion: HiBob does not have a built-in structured asset management module" style="height:calc(var(--s)*31)">
+      <figcaption style="max-width:calc(var(--s)*36)"><b>Companion</b>, asked to set up laptop tracking: <q>HiBob does not have a built-in structured asset management module</q></figcaption></figure>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>You mentioned being AI-ready is the top priority. This is where custom data and AI meet: the AI can only be as good as the structure and access behind the data.</p>
+    <p>Both answers are from the demo, as the admin user. The exact prompt to the Reports AI was: "Create a report of all employees with their laptop serial number and the dates they received a laptop, mouse and keyboard." The Laptop Serial Number field does exist, in Asset Management.</p>
+    <p>I don't know for sure why it wasn't found. The likely reason is access: new fields start with all permissions off, and I couldn't check the permission settings from this user. If so, it's the product working as designed, which is exactly the point. The design makes it easy to end up with data nobody, including the AI, can use.</p>
+    <p>And when asked to set things up, Companion offers to add text and date fields to the Work or About section: more flat fields on the profile, the same pattern that created the mess. Setup is where the AI could help most.</p>
+  </aside>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <p class="eyebrow">What others offer</p>
+  <h2 class="t">Enterprise HR platforms let customers define their own objects</h2>
+  <div class="body" style="margin-top:calc(var(--s)*4)">
+    <table class="cmp">
+      <tr><th style="width:18%">Platform</th><th style="width:34%">What customers can create</th><th>What it connects to</th></tr>
+      <tr><td>Rippling</td><td>Custom objects, alongside built-in ones like Device</td><td>Linked to employees or to other custom objects. Used in reports, custom apps and workflows.</td></tr>
+      <tr><td>SAP SuccessFactors</td><td>Custom objects in its Metadata Framework</td><td>Their own security, business rules, workflows, reporting and API.</td></tr>
+      <tr><td>Workday</td><td>Custom objects that extend a Workday object, like Worker</td><td>Shown on the worker's profile, usable in reports, with their own security.</td></tr>
+      <tr class="us"><td>Bob today</td><td>Custom fields and tables on people's profiles</td><td>Shown on the profile and usable in flows. Access off by default.</td></tr>
+    </table>
+    <p class="note" style="margin-top:calc(var(--s)*2.4)">The difference isn't where the data is stored. It's that security, reports and workflows come with the object.</p>
+    <p class="fine" style="margin-top:calc(var(--s)*1.4)">From public documentation. Workday's details come from a partner's guide, since Workday's own docs need a login.</p>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>I kept this to what I could verify from public documentation. Rippling and SAP are from their official docs; Workday from an implementation partner's guide.</p>
+    <p>Two things stand out. Rippling and SAP let customers define objects that aren't just extra fields on an employee, and link them to people. And in all three, the custom data plugs into security, reporting and workflows as part of the object, not as a separate step.</p>
+    <p>Rippling has a built-in Device object. That's a different strategy (they sell IT management too). I'm not suggesting Bob copy it, only noting that "a laptop that's its own record" is normal elsewhere.</p>
+    <p>I haven't checked pricing, packaging, or which of these HiBob meets in deals.</p>
+  </aside>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <p class="eyebrow">Recommendation</p>
+  <h2 class="t">Custom objects, set up with AI, and usable everywhere from day one</h2>
+  <div class="body tracks" style="margin-top:calc(var(--s)*4)">
+    <div class="track main">
+      <div class="lb">Where I'd go</div>
+      <div class="it">Custom objects: records that exist on their own and link to people</div>
+      <ul>
+        <li>A laptop, a certification, a country agreement. Each with its own fields and history.</li>
+        <li>Access, reports and Bob's AI are part of setup, not a separate step.</li>
+      </ul>
+    </div>
+    <div class="track alt">
+      <div class="lb">How admins set them up</div>
+      <div class="it">Describe it and AI drafts it, or build it by hand</div>
+      <ul>
+        <li>AI proposes the structure and checks what already exists.</li>
+        <li>Data-savvy admins can build directly.</li>
+        <li>Both end on the same review screen.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="fine" style="margin-top:calc(var(--s)*3);font-size:calc(var(--s)*2);color:var(--ink-2)"><b>Not in the first version:</b> custom data that payroll calculations depend on, IT asset management as a product, and org structures.</p>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>Two decisions. What gets built: custom objects, not more fields on the profile. And how: AI drafts it, a person approves it.</p>
+    <p>Why objects: a laptop is bought, assigned, returned and reassigned. A programme or an agreement involves many people. Modelling these as fields on one person is what produced the demo's "8 places". Bob already has records like this internally: job profiles, job roles, levels and bands show up in the "Objects audit" report, and positions and projects have their own importers. I didn't find a way for customers to create their own kind.</p>
+    <p>Why AI-assisted: it's the fastest way for a non-technical admin to get a good structure, and the right moment to catch duplicates. Some enterprise admins are very data-savvy and will want full control, so the manual path stays first-class.</p>
+    <p>On scope. Allowances and agreements are in the brief, and they can feed payroll. Letting admins define data that payroll then depends on is a bigger risk than tracking certifications, so I'd leave it out of the first version and add it once objects have proven themselves. Laptops are an example, not a push into IT asset management. Org structures come later (see delivery).</p>
+    <p>Questions I'd bring to engineering first: how access works for a record nobody owns (a laptop in stock); one-to-many vs many-to-many links (a programme and its participants); history and effective dates on objects; limits and performance; and how much of the internal objects layer could be reused.</p>
+  </aside>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <p class="eyebrow">Tradeoffs</p>
+  <h2 class="t">What this gives up, and where I'd land</h2>
+  <div class="body trade" style="margin-top:calc(var(--s)*4)">
+    <div class="tr"><div class="vs">Flexibility <span>vs</span> a tidy data model</div>
+      <div class="pick"><b>Both, with guardrails.</b> Anyone can create objects, but setup checks for similar ones and suggests reusing them.</div></div>
+    <div class="tr"><div class="vs">AI speed <span>vs</span> admin trust</div>
+      <div class="pick"><b>AI drafts, a person approves.</b> Nothing is created until the admin reviews it on a normal screen.</div></div>
+    <div class="tr"><div class="vs">Safe <span>vs</span> usable access</div>
+      <div class="pick"><b>Inherit when it's safe, private when it isn't.</b> The admin sees exactly who will have access before approving.</div></div>
+    <div class="tr"><div class="vs">Objects now <span>vs</span> better tables first</div>
+      <div class="pick"><b>Value first on today's model.</b> Objects follow, sized with engineering. Faster if they turn out cheap.</div></div>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>On access. Bob already offers two options when creating a field: all permissions off, or inherit the category's permissions. It also warns that inheriting from a category with mixed permissions ends in "no access".</p>
+    <p>My rule: inherit when the category's permissions are uniform and the data isn't sensitive. Otherwise start private, for example documents, health, pay, IDs, or a category with mixed permissions, and let the admin pick who can see it from suggestions. In both cases the admin sees the resulting audience ("these 4 groups will see this") before approving.</p>
+    <p>On flexibility. The risk with any self-serve builder is recreating the "8 places" problem faster. The duplicate check is the guardrail, and archive and the audit trail that already exist stay.</p>
+    <p>On sequencing, see the delivery slide.</p>
+  </aside>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <p class="eyebrow">Prototype</p>
+  <h2 class="t">From one sentence to certifications that work across Bob</h2>
+  <div class="body steps" style="margin-top:calc(var(--s)*4.5)">
+    <div class="step"><div class="n">01</div><div class="it">Describe</div>
+      <div class="sub"><q>Track certifications with an expiry date. Remind the manager 30 days before.</q></div></div>
+    <div class="step"><div class="n">02</div><div class="it">AI drafts it</div>
+      <div class="sub">An object, its fields and types, who can see it, and a reminder workflow.</div></div>
+    <div class="step hl"><div class="n">03</div><div class="it">It finds what exists</div>
+      <div class="sub">Three certification fields are already in use. Move their data into the new object?</div></div>
+    <div class="step"><div class="n">04</div><div class="it">Review and approve</div>
+      <div class="sub">On a normal settings screen, including who can see it. Edit anything by hand.</div></div>
+    <div class="step"><div class="n">05</div><div class="it">Use it</div>
+      <div class="sub">On the profile, in a report, and in an answer from Companion.</div></div>
+  </div>
+  <a class="btn todo">Prototype link: to be added</a>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>Certifications carry the prototype because they show the data being used, not just stored: an expiry date that triggers a reminder, and a question the AI can answer ("whose certification expires this month?").</p>
+    <p>Step 3 is the one I care about most. Most of the need comes from existing customers, so the realistic starting point isn't a blank page. It's a set of fields that already exist, and the product should help move them into a proper structure.</p>
+    <p>It shows where this ends up: custom objects (phase 3 on the delivery slide), set up with the AI flow from phase 2.</p>
+    <p>The prototype is a mock-up of Bob. Names and data are made up.</p>
+  </aside>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+  <p class="eyebrow">Delivery</p>
+  <h2 class="t">A path that pays off on today's model, and leads to objects</h2>
+  <div class="phases">
+    <div class="ph start"><span class="flag">Start here</span><div class="n">1</div>
+      <div class="it">Make custom data findable</div>
+      <div class="sub">Access decided during setup. Custom data in the general report builder, table import and the AI.</div></div>
+    <div class="ph"><div class="n">2</div>
+      <div class="it">AI-assisted setup and clean-up</div>
+      <div class="sub">Draft from a description, spot duplicates, suggest merges. Still on today's fields and tables.</div></div>
+    <div class="ph"><div class="n">3</div>
+      <div class="it">Custom objects</div>
+      <div class="sub">Records that exist on their own and link to people. Move existing tables into them.</div></div>
+    <div class="ph"><div class="n">4</div>
+      <div class="it">Build on objects</div>
+      <div class="sub">Workflows, API, Companion acting on them, and richer org structures for strategic deals.</div></div>
+  </div>
+  <p class="fine" style="margin-top:calc(var(--s)*6)">No timelines. I'd size these with engineering. If objects turn out cheaper than expected, phase 3 can start alongside 1 and 2.</p>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>I don't know HiBob's architecture, team or roadmap, so there are no dates or team sizes here.</p>
+    <p>Each phase is worth shipping even if the next one slips. Phases 1 and 2 work on today's model and help every customer who already has custom data. Phase 3 is the bigger bet.</p>
+    <p>Phase 1 is about what I saw missing: the laptop data didn't show up in the general report builder, in table import, or in the AI's answers. There are report templates named after individual tables, but I didn't open one, so I'm not claiming anything about them.</p>
+    <p>Phase 4 includes "complex organizational structures", which Gili mentioned for strategic deals. I see objects as the base for it, but it's its own problem space and I haven't explored it.</p>
+  </aside>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <p class="eyebrow">From idea to customer value</p>
+  <h2 class="t">Learn first, then start with the customers who have the most workarounds</h2>
+  <div class="body rows" style="margin-top:calc(var(--s)*4);max-width:calc(var(--s)*118)">
+    <div class="r"><span class="k">Learn first</span><span class="v">Interview admins, and test the riskiest assumption: do they trust and keep a structure the AI drafted?</span></div>
+    <div class="r"><span class="k">Find them</span><span class="v">Accounts with the most custom categories, duplicate names, and unused tables.</span></div>
+    <div class="r"><span class="k">Pick one use case</span><span class="v">Certifications or assets, with a handful of design partners.</span></div>
+    <div class="r"><span class="k">Migrate, don't restart</span><span class="v">Move their existing fields into the new structure, with them.</span></div>
+    <div class="r"><span class="k">Arm the field teams</span><span class="v">Implementation and CS use the same tool, and feed templates back.</span></div>
+    <div class="r"><span class="k">Widen it</span><span class="v">Templates from what worked, then self-serve for everyone.</span></div>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>"Learn first" is about the riskiest assumption in the plan: that admins will trust and keep an AI-drafted structure, and that the real blocker is modelling rather than, say, services capacity. A clickable prototype with a few admins answers the first part cheaply.</p>
+    <p>"Find them" assumes HiBob can see, in aggregate, how many custom categories and fields each account has. I believe that's likely but haven't verified it.</p>
+    <p>Design partners should include both kinds of accounts: those that want the AI to draft, and data-savvy ones that build by hand.</p>
+    <p>New strategic deals are the second audience: once objects exist, they become part of the enterprise sales story.</p>
+  </aside>
+</section>
+
+<!-- 12 -->
+<section class="slide">
+  <p class="eyebrow">Success</p>
+  <h2 class="t">How I'd know it's working</h2>
+  <div class="body">
+    <div class="measure-label">The one that matters</div>
+    <div class="measure-main">Custom data that's used, not just stored: shown in a report, a workflow or an AI answer</div>
+    <div class="pts" style="grid-template-columns:repeat(4,1fr);margin-top:calc(var(--s)*4.5);gap:calc(var(--s)*3.5)">
+      <div class="pt"><div class="n">Adoption</div><div class="it" style="font-size:calc(var(--s)*2.3)">Objects created, and how many started from AI</div></div>
+      <div class="pt"><div class="n">Health</div><div class="it" style="font-size:calc(var(--s)*2.3)">Fewer duplicate fields and categories per account</div></div>
+      <div class="pt"><div class="n">Guardrail</div><div class="it" style="font-size:calc(var(--s)*2.3)">AI setups undone or heavily edited, and access mistakes</div></div>
+      <div class="pt"><div class="n">Business</div><div class="it" style="font-size:calc(var(--s)*2.3)">Less implementation effort per enterprise customer</div></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>These are proposals. I don't have baselines for any of them, and the first step would be to measure today's numbers.</p>
+    <p>The main metric is deliberately about use, because that's the gap I saw: data that exists, but that reports and the AI can't find.</p>
+    <p>Adoption and health move first, within weeks of a release. The business line moves slowly and would be read over quarters, alongside retention and expansion of the scaling accounts, and win rate in strategic deals.</p>
+    <p>The guardrail covers the two biggest risks in the plan: AI drafts that aren't good enough, and data visible to the wrong people.</p>
+  </aside>
+</section>
+
+<div class="prog" id="prog"></div>
+<div id="count"></div>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+let cur = 0;
+// reading version: stack the slides and move each slide's notes underneath it
+const READ = new URLSearchParams(location.search).has('read');
+if (READ) {
+  document.documentElement.classList.add('read');
+  const h = document.createElement('p'); h.className = 'readhead';
+  h.textContent = 'Reading version: each slide is followed by the notes I would say in the room. Presenting version: present.html';
+  document.body.prepend(h);
+  slides.forEach((s, i) => { s.dataset.n = (i+1) + ' / ' + slides.length; const n = s.querySelector('.notes'); if (n) { n.classList.add('moved'); s.after(n); } });
+}
+function show(i){
+  cur = Math.max(0, Math.min(slides.length-1, i));
+  slides.forEach((s,k)=>s.classList.toggle('on', k===cur));
+  document.getElementById('count').textContent = (cur+1) + ' / ' + slides.length;
+  document.getElementById('prog').style.width = ((cur+1)/slides.length*100) + '%';
+  history.replaceState(null,'','#'+(cur+1));
+}
+document.addEventListener('keydown', e=>{
+  if(READ) return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); show(cur+1); }
+  if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); show(cur-1); }
+  if(e.key==='Home') show(0);
+  if(e.key==='End') show(slides.length-1);
+  if(e.key==='n' || e.key==='N') document.body.classList.toggle('shownotes');
+});
+// click the right side to go forward, the left third to go back
+document.addEventListener('click', e=>{
+  if(READ) return;
+  if(e.target.closest('a,button,.notes')) return;
+  show(e.clientX > innerWidth/3 ? cur+1 : cur-1);
+});
+const start = parseInt(location.hash.slice(1),10);
+if(!READ) show(Number.isFinite(start) ? start-1 : 0);
+</script>
+</body>
+</html>
