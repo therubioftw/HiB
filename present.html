@@ -137,6 +137,29 @@
     font-size:max(15px,calc(var(--s)*1.9));line-height:1.55;color:var(--ink-2);box-shadow:0 6px 14px rgba(60,20,35,.08)}
   html.read .prog,html.read #count{display:none}
   html.read .slide::after{content:attr(data-n);position:absolute;right:calc(var(--s)*3);bottom:calc(var(--s)*1.8);font-size:calc(var(--s)*1.6);color:#a99ea3}
+  /* reading version on a phone: drop the 16:9 frame, stack the columns, keep text readable */
+  @media (max-width:760px){
+    html.read{--w:100vw;--s:6.4px}
+    html.read body{padding:12px 0}
+    html.read .slide,html.read .slide.stmt{height:auto;border-radius:0;padding:28px 20px 40px}
+    html.read .notes.moved{border-radius:0;padding:18px 20px 16px;font-size:14px}
+    html.read .readhead{padding:0 20px}
+    html.read .t{font-size:24px} html.read .big{font-size:28px}
+    html.read .under,html.read .pt .sub,html.read .ph .sub,html.read .step .sub,html.read .tr .pick,html.read .r .v,
+    html.read .shot figcaption,html.read .track ul,html.read .fine,html.read .cmp,html.read .note{font-size:14px}
+    html.read .pt .it,html.read .ph .it,html.read .step .it,html.read .tr .vs,html.read .r .k,html.read .track .it{font-size:17px}
+    html.read .pts.c3,html.read .tracks,html.read .trade,html.read .phases,html.read .steps,
+    html.read .body[style*="grid-template-columns"],html.read .pts[style*="grid-template-columns"]{grid-template-columns:1fr !important;display:grid}
+    html.read .phases{border-top:0;margin-top:24px} html.read .ph::before,html.read .ph .flag{display:none}
+    html.read .shots{flex-direction:column}
+    html.read .shot img{width:100% !important;height:auto !important;max-width:420px}
+    html.read .r{grid-template-columns:1fr;gap:4px}
+    html.read .cmp,html.read .cmp tbody,html.read .cmp tr,html.read .cmp td{display:block;width:100% !important}
+    html.read .cmp th{display:none} html.read .cmp tr{border-bottom:1px solid var(--rule);padding:8px 0}
+    html.read .cmp td{border:0;padding:2px 0}
+    html.read .step{min-height:0}
+    html.read .slide::after{bottom:10px;right:20px}
+  }
   .readhead{display:none}
   html.read .readhead{display:block;width:var(--w);margin:0 auto calc(var(--s)*3);font-size:max(14px,calc(var(--s)*1.8));color:var(--muted)}
 
@@ -166,7 +189,7 @@
     <p class="h">Notes</p>
     <p>The brief asks how enterprise customers can model their own HR data safely and use it across Bob.</p>
     <p>My starting point: Bob already lets admins add custom fields and tables. So the gap isn't "can they add data". It's everything around it: setting it up well, keeping it safe and tidy, and using it in reports and in Bob's AI.</p>
-    <p>Everything I show about today's Bob comes from the demo environment you shared. It's a demo company, so some of the mess was made by people demoing. I lean on how the product works, which is true for every customer, and use the demo only as an illustration.</p>
+    <p>Everything I show about today's Bob comes from the demo environment you shared. It's a demo company, so some of the mess was made by people demoing. I lean on the product's own setup screens, not the demo's data, and use the demo's data only as an illustration.</p>
   </aside>
 </section>
 
@@ -211,8 +234,8 @@
   </div>
   <aside class="notes">
     <p class="h">Notes</p>
-    <p>This is how the product works for every customer, not just the demo. I walked through every "create" screen without saving anything: Add category, Add field, Add table, Add column.</p>
-    <p>Field types are Text, Text area, Date, Number, List, Multi-select list, Currency, Employee reference, Hierarchical list and Document. Text can have a character limit or a pattern. For dates, Bob says "We cannot validate values for this type", so there's no way to require an expiry date in the future.</p>
+    <p>These are the product's own setup screens, not the demo's data. I walked through every "create" screen without saving anything: Add category, Add field, Add table, Add column.</p>
+    <p>Field types are Text, Text area, Date, Number, List, Multi-select list, Currency, Employee reference, Hierarchical list and Document. Text can have a character limit or a pattern. For dates, Bob says "We cannot validate values for this type", so the field settings offer no way to require an expiry date in the future.</p>
     <p>A category is just a name and a description. A table is a name, a description and a default permission. I saw no templates or suggestions in any of these screens.</p>
     <p>"All permissions off" is the safe choice, and I'd keep that spirit. The problem is that access is decided later and elsewhere, so data can end up created but invisible.</p>
   </aside>
@@ -221,7 +244,7 @@
 <!-- 4 -->
 <section class="slide">
   <p class="eyebrow">What that leads to: one example</p>
-  <h2 class="t">In the demo company, one laptop is tracked in 8 different places</h2>
+  <h2 class="t">In the demo company, laptop data is set up in 8 different places</h2>
   <div class="body shots" style="margin-top:calc(var(--s)*3.4);gap:calc(var(--s)*6)">
     <figure class="shot"><img src="img/ev-laptop-search.png" alt="Searching People's data fields for 'laptop': 1 category, 2 tables, 5 fields" style="height:calc(var(--s)*36)">
       <figcaption style="max-width:calc(var(--s)*42)"><b>Searching the settings for "laptop":</b> 1 category, 2 tables and 5 fields, spread across 5 categories.</figcaption></figure>
@@ -233,7 +256,7 @@
     <p>Laptops are the clearest example I found, not the product I'd build. HR systems don't need to become IT asset management. The point is the shape of the data: records with their own life that link to people. Allowances, agreements, and country-specific details from the brief have the same shape.</p>
     <p>All of this is under System Settings → Data management → People's data fields, one page with about 90 categories. Asset Management has a "Laptop Serial Number" field, a table whose columns are Laptop, Mouse and Keyboard (all dates), and a separate "Laptop" table with a serial number. There are also categories called "Laptoop", "Employment equipment" and "IT Requirements".</p>
     <p>The same pattern shows up elsewhere: three categories called "Skills", fields named "Skill 1 / Skill 2 / Skill 3", and certifications in three unrelated fields with no expiry date.</p>
-    <p>Some of this is demo noise. But it's what the product allows, and nothing in setup warns about it.</p>
+    <p>Some of this is demo noise. But it's what the product allows, and the setup screens I saw offer no templates or suggestions to steer admins towards what already exists.</p>
   </aside>
 </section>
 
@@ -260,7 +283,7 @@
 <!-- 6 -->
 <section class="slide">
   <p class="eyebrow">What others offer</p>
-  <h2 class="t">Enterprise HR platforms let customers define their own objects</h2>
+  <h2 class="t">Rippling, SAP and Workday let customers create custom objects</h2>
   <div class="body" style="margin-top:calc(var(--s)*4)">
     <table class="cmp">
       <tr><th style="width:18%">Platform</th><th style="width:34%">What customers can create</th><th>What it connects to</th></tr>
@@ -269,13 +292,13 @@
       <tr><td>Workday</td><td>Custom objects that extend a Workday object, like Worker</td><td>Shown on the worker's profile, usable in reports, with their own security.</td></tr>
       <tr class="us"><td>Bob today</td><td>Custom fields and tables on people's profiles</td><td>Shown on the profile and usable in flows. Access off by default.</td></tr>
     </table>
-    <p class="note" style="margin-top:calc(var(--s)*2.4)">The difference isn't where the data is stored. It's that security, reports and workflows come with the object.</p>
+    <p class="note" style="margin-top:calc(var(--s)*2.4)">The difference isn't where the data is stored. It's what comes with the object, like reports, security and workflows.</p>
     <p class="fine" style="margin-top:calc(var(--s)*1.4)">From public documentation. Workday's details come from a partner's guide, since Workday's own docs need a login.</p>
   </div>
   <aside class="notes">
     <p class="h">Notes</p>
     <p>I kept this to what I could verify from public documentation. Rippling and SAP are from their official docs; Workday from an implementation partner's guide.</p>
-    <p>Two things stand out. Rippling and SAP let customers define objects that aren't just extra fields on an employee, and link them to people. And in all three, the custom data plugs into security, reporting and workflows as part of the object, not as a separate step.</p>
+    <p>Two things stand out. Rippling and SAP let customers define objects that aren't just extra fields on an employee, and link them to people. And the custom data comes with things like reports, security and workflows as part of the object (the table shows which, per vendor), not as a separate step.</p>
     <p>Rippling has a built-in Device object. That's a different strategy (they sell IT management too). I'm not suggesting Bob copy it, only noting that "a laptop that's its own record" is normal elsewhere.</p>
     <p>I haven't checked pricing, packaging, or which of these HiBob meets in deals.</p>
   </aside>
@@ -308,7 +331,7 @@
   <aside class="notes">
     <p class="h">Notes</p>
     <p>Two decisions. What gets built: custom objects, not more fields on the profile. And how: AI drafts it, a person approves it.</p>
-    <p>Why objects: a laptop is bought, assigned, returned and reassigned. A programme or an agreement involves many people. Modelling these as fields on one person is what produced the demo's "8 places". Bob already has records like this internally: job profiles, job roles, levels and bands show up in the "Objects audit" report, and positions and projects have their own importers. I didn't find a way for customers to create their own kind.</p>
+    <p>Why objects: a laptop is bought, assigned, returned and reassigned. A programme or an agreement involves many people. In the setup screens I saw, they can only be fields and tables on a person, and the demo's "8 places" shows what that can look like. Bob already has records like this internally: job profiles, job roles, levels and bands show up in the "Objects audit" report, and positions and projects have their own importers. I didn't find a way for customers to create their own kind.</p>
     <p>Why AI-assisted: it's the fastest way for a non-technical admin to get a good structure, and the right moment to catch duplicates. Some enterprise admins are very data-savvy and will want full control, so the manual path stays first-class.</p>
     <p>On scope. Allowances and agreements are in the brief, and they can feed payroll. Letting admins define data that payroll then depends on is a bigger risk than tracking certifications, so I'd leave it out of the first version and add it once objects have proven themselves. Laptops are an example, not a push into IT asset management. Org structures come later (see delivery).</p>
     <p>Questions I'd bring to engineering first: how access works for a record nobody owns (a laptop in stock); one-to-many vs many-to-many links (a programme and its participants); history and effective dates on objects; limits and performance; and how much of the internal objects layer could be reused.</p>
@@ -386,7 +409,7 @@
   <aside class="notes">
     <p class="h">Notes</p>
     <p>I don't know HiBob's architecture, team or roadmap, so there are no dates or team sizes here.</p>
-    <p>Each phase is worth shipping even if the next one slips. Phases 1 and 2 work on today's model and help every customer who already has custom data. Phase 3 is the bigger bet.</p>
+    <p>Each phase is worth shipping even if the next one slips. Phases 1 and 2 work on today's model and would help every customer who already has custom data. Phase 3 is the bigger bet.</p>
     <p>Phase 1 is about what I saw missing: the laptop data didn't show up in the general report builder, in table import, or in the AI's answers. There are report templates named after individual tables, but I didn't open one, so I'm not claiming anything about them.</p>
     <p>Phase 4 includes "complex organizational structures", which you mentioned for strategic deals. I see objects as the base for it, but it's its own problem space and I haven't explored it.</p>
   </aside>
@@ -447,7 +470,7 @@ const READ = new URLSearchParams(location.search).has('read');
 if (READ) {
   document.documentElement.classList.add('read');
   const h = document.createElement('p'); h.className = 'readhead';
-  h.textContent = 'Reading version: each slide is followed by the notes I would say in the room. Presenting version: present.html';
+  h.innerHTML = 'Reading version: each slide is followed by the notes I would say in the room. <a href="present.html" style="color:inherit">Open the presenting version</a> (arrow keys to move).';
   document.body.prepend(h);
   slides.forEach((s, i) => { s.dataset.n = (i+1) + ' / ' + slides.length; const n = s.querySelector('.notes'); if (n) { n.classList.add('moved'); s.after(n); } });
 }
