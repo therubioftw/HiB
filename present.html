@@ -472,6 +472,9 @@ if (READ) {
   const h = document.createElement('p'); h.className = 'readhead';
   h.innerHTML = 'Reading version: each slide is followed by the notes I would say in the room. <a href="present.html" style="color:inherit">Open the presenting version</a> (arrow keys to move).';
   document.body.prepend(h);
+  // anchors are created here, after the browser's own jump, so scroll to #sN ourselves
+  const jump = () => { const t = location.hash && document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); };
+  setTimeout(jump, 0); window.addEventListener('load', jump);
   slides.forEach((s, i) => { s.id = 's' + (i+1); s.dataset.n = (i+1) + ' / ' + slides.length; const n = s.querySelector('.notes'); if (n) { n.classList.add('moved'); s.after(n); } });
 }
 function show(i){
