@@ -377,13 +377,13 @@
     <div class="step"><div class="n">05</div><div class="it">Use it</div>
       <div class="sub">On the profile, in a report, and in an answer from Companion.</div></div>
   </div>
-  <a class="btn todo">Prototype link: to be added</a>
+  <a class="btn" href="prototype/" target="_blank" rel="noopener">Open the prototype ↗</a>
   <aside class="notes">
     <p class="h">Notes</p>
     <p>Certifications carry the prototype because they show the data being used, not just stored: an expiry date that triggers a reminder, and a question the AI can answer ("whose certification expires this month?").</p>
     <p>Step 3 is the one I care about most. Most of the need comes from existing customers, so the realistic starting point isn't a blank page. It's a set of fields that already exist, and the product should help move them into a proper structure.</p>
     <p>It shows where this ends up: custom objects (phase 3 on the delivery slide), set up with the AI flow from phase 2, plus a reminder workflow, which comes in phase 4.</p>
-    <p>The prototype is a mock-up of Bob. Names and data are made up.</p>
+    <p>The prototype is a clickable mock-up of Bob, with a step guide in the corner. The three existing fields in step 3 use the names I found in the demo; the people, numbers and Companion's answers are made up and scripted. "Build it yourself" shows the manual route, which ends on the same review screen.</p>
   </aside>
 </section>
 
@@ -472,7 +472,7 @@ if (READ) {
   const h = document.createElement('p'); h.className = 'readhead';
   h.innerHTML = 'Reading version: each slide is followed by the notes I would say in the room. <a href="present.html" style="color:inherit">Open the presenting version</a> (arrow keys to move).';
   document.body.prepend(h);
-  slides.forEach((s, i) => { s.dataset.n = (i+1) + ' / ' + slides.length; const n = s.querySelector('.notes'); if (n) { n.classList.add('moved'); s.after(n); } });
+  slides.forEach((s, i) => { s.id = 's' + (i+1); s.dataset.n = (i+1) + ' / ' + slides.length; const n = s.querySelector('.notes'); if (n) { n.classList.add('moved'); s.after(n); } });
 }
 function show(i){
   cur = Math.max(0, Math.min(slides.length-1, i));
