@@ -105,6 +105,34 @@
   .cmp tr.us td:first-child{color:var(--accent)}
   .cmp .src{font-size:calc(var(--s)*1.4);color:var(--muted)}
 
+  /* the model behind the screens */
+  .model{display:grid;grid-template-columns:1.15fr auto 1fr;gap:calc(var(--s)*3);align-items:center}
+  .def{background:#fff;border:2px solid var(--accent);border-radius:calc(var(--s)*1.2);padding:calc(var(--s)*2.4) calc(var(--s)*2.8)}
+  .def .lb{font-size:calc(var(--s)*1.6);font-weight:700;color:var(--accent-2);letter-spacing:.04em;text-transform:uppercase}
+  .def .nm{font-size:calc(var(--s)*2.8);font-weight:650;margin:calc(var(--s)*.6) 0 calc(var(--s)*1.4)}
+  .def ul{margin:0;padding-left:1.1em;font-size:calc(var(--s)*1.95);line-height:1.5;color:var(--ink-2)}
+  .def ul b{color:var(--ink)}
+  .flow{font-size:calc(var(--s)*4);color:var(--accent-2);text-align:center;line-height:1}
+  .flow span{display:block;font-size:calc(var(--s)*1.5);font-weight:650;color:var(--muted);margin-top:calc(var(--s)*.8)}
+  .reads{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--s)*1.2)}
+  .reads div{background:#fff;border:1px solid var(--rule);border-radius:calc(var(--s)*.9);padding:calc(var(--s)*1.3) calc(var(--s)*1.6);font-size:calc(var(--s)*2);font-weight:620}
+  .reads div span{display:block;font-size:calc(var(--s)*1.6);font-weight:500;color:var(--muted)}
+  .reads div.later{border-style:dashed;color:var(--muted)}
+  .xrefs{display:flex;gap:calc(var(--s)*1.4);flex-wrap:wrap;margin-top:calc(var(--s)*3.2);align-items:center;font-size:calc(var(--s)*1.9)}
+  .xrefs .k{color:var(--muted)}
+  .xref{color:var(--accent);background:var(--accent-soft);border-radius:calc(var(--s)*2);padding:calc(var(--s)*.6) calc(var(--s)*1.6);text-decoration:none;font-weight:650;cursor:pointer}
+  .xref:hover{background:#efd6e1}
+  .backref{position:absolute;right:calc(var(--s)*9);top:calc(var(--s)*8.5);font-size:calc(var(--s)*1.7);color:var(--muted);text-decoration:none;cursor:pointer}
+  .backref:hover{color:var(--accent)}
+  .steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--s)*2)}
+  .steps4 .st{border-top:2px solid var(--ink);padding-top:calc(var(--s)*1.4)}
+  .steps4 .st .n{font-size:calc(var(--s)*1.8);font-weight:700;color:var(--accent-2)}
+  .steps4 .st .it{font-size:calc(var(--s)*2.4);font-weight:640;line-height:1.2;margin:calc(var(--s)*.6) 0 calc(var(--s)*1)}
+  .steps4 .st .sub{font-size:calc(var(--s)*1.85);color:var(--muted);line-height:1.4}
+  .qs{columns:2;column-gap:calc(var(--s)*5);font-size:calc(var(--s)*2.05);line-height:1.45;color:var(--ink-2)}
+  .qs div{break-inside:avoid;padding:calc(var(--s)*1.2) 0;border-top:1px solid var(--rule)}
+  .qs b{color:var(--ink);display:block;font-size:calc(var(--s)*2.2)}
+
   /* tradeoffs */
   .trade{display:grid;grid-template-columns:repeat(2,1fr);gap:calc(var(--s)*2.4) calc(var(--s)*4)}
   .tr{border-top:2px solid var(--ink);padding-top:calc(var(--s)*1.6)}
@@ -158,6 +186,10 @@
     html.read .cmp th{display:none} html.read .cmp tr{border-bottom:1px solid var(--rule);padding:8px 0}
     html.read .cmp td{border:0;padding:2px 0}
     html.read .step{min-height:0}
+    html.read .model,html.read .steps4,html.read .reads{grid-template-columns:1fr} html.read .flow{transform:rotate(90deg)}
+    html.read .qs{columns:1} html.read .backref{position:static;display:block;margin-bottom:10px;font-size:13px}
+    html.read .def ul,html.read .reads div,html.read .steps4 .st .sub,html.read .qs,html.read .xrefs{font-size:14px}
+    html.read .steps4 .st .it,html.read .qs b,html.read .def .nm{font-size:17px}
     html.read .slide::after{bottom:10px;right:20px}
   }
   .readhead{display:none}
@@ -334,7 +366,47 @@
     <p>Why objects: a laptop is bought, assigned, returned and reassigned. A programme or an agreement involves many people. In the setup screens I saw, they can only be fields and tables on a person, and the demo's "8 places" shows what that can look like. Bob already has records like this internally: job profiles, job roles, levels and bands show up in the "Objects audit" report, and positions and projects have their own importers. I didn't find a way for customers to create their own kind.</p>
     <p>Why AI-assisted: it's the fastest way for a non-technical admin to get a good structure, and the right moment to catch duplicates. Some enterprise admins are very data-savvy and will want full control, so the manual path stays first-class.</p>
     <p>On scope. Allowances and agreements are in the brief, and they can feed payroll. Letting admins define data that payroll then depends on is a bigger risk than tracking certifications, so I'd leave it out of the first version and add it once objects have proven themselves. Laptops are an example, not a push into IT asset management. Org structures come later (see delivery).</p>
-    <p>Questions I'd bring to engineering first: how access works for a record nobody owns (a laptop in stock); one-to-many vs many-to-many links (a programme and its participants); history and effective dates on objects; limits and performance; and how much of the internal objects layer could be reused.</p>
+    <p>The questions I'd bring to engineering first are in the appendix (A3).</p>
+  </aside>
+</section>
+
+<!-- 7b: the model -->
+<section class="slide" data-key="model">
+  <p class="eyebrow">Behind the screens</p>
+  <h2 class="t">One model that every Bob product reads</h2>
+  <div class="body model" style="margin-top:calc(var(--s)*3.6)">
+    <div class="def">
+      <div class="lb">An object type</div>
+      <div class="nm">e.g. Certification</div>
+      <ul>
+        <li><b>Fields</b> with types and rules, including dates and rules across fields</li>
+        <li><b>Links</b> to people or to other objects: one or many</li>
+        <li><b>History</b> kept for every record</li>
+        <li><b>Access policy</b>, decided during setup</li>
+        <li><b>Descriptions</b> that people and the AI can read</li>
+      </ul>
+    </div>
+    <div class="flow">→<span>one contract</span></div>
+    <div class="reads">
+      <div>Profiles<span>A section per object</span></div>
+      <div>Reports<span>Every field, with links</span></div>
+      <div>Import<span>Any object, in bulk</span></div>
+      <div>Companion<span>Reads types, links, descriptions</span></div>
+      <div class="later">Workflows<span>Phase 4</span></div>
+      <div class="later">Public API<span>Phase 4</span></div>
+    </div>
+  </div>
+  <div class="xrefs"><span class="k">In the appendix:</span>
+    <a class="xref" data-goto="a1">A1 · What changes in the model</a>
+    <a class="xref" data-goto="a2">A2 · Moving today's custom tables</a>
+    <a class="xref" data-goto="a3">A3 · Questions for engineering</a></div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>The screens are the visible part. The real product is the model underneath: one definition of an object type that every Bob product reads the same way. That's what makes "ready for reports and AI from day one" possible, and it's where a core data team earns its keep.</p>
+    <p>This is about the data contract, not the technical architecture: what an object type is made of, and who reads it. How it's stored and served is engineering's call.</p>
+    <p>It's also the most direct link to being AI-ready. The AI understands data through the model: types, links between objects, and plain-language descriptions. Good structure is what lets it answer questions correctly.</p>
+    <p>Today, per HiBob's public API docs, custom table data isn't returned by the employee search endpoint and needs a separate call per employee, per table. A single model with one way to read any object type is the difference.</p>
+    <p>The appendix goes deeper: what changes compared with today's fields and tables (A1), how existing custom tables move over without breaking anyone (A2), and the questions I'd bring to engineering first (A3).</p>
   </aside>
 </section>
 
@@ -400,7 +472,7 @@
       <div class="sub">Draft from a description, spot duplicates, suggest merges. Still on today's fields and tables.</div></div>
     <div class="ph"><div class="n">3</div>
       <div class="it">Custom objects</div>
-      <div class="sub">Records that exist on their own and link to people. Move existing tables into them.</div></div>
+      <div class="sub">Records that exist on their own and link to people. Today's tables move in; old paths keep working <a class="xref" data-goto="a2" style="padding:0 .5em">A2</a></div></div>
     <div class="ph"><div class="n">4</div>
       <div class="it">Build on objects</div>
       <div class="sub">Workflows, API, Companion acting on them, and richer org structures for strategic deals.</div></div>
@@ -459,6 +531,74 @@
   </aside>
 </section>
 
+<!-- A1 -->
+<section class="slide" data-key="a1">
+  <a class="backref" data-goto="model">← Back to the model</a>
+  <p class="eyebrow">Appendix A1 · Behind the screens</p>
+  <h2 class="t">What changes in the model</h2>
+  <div class="body" style="margin-top:calc(var(--s)*3.4)">
+    <table class="cmp">
+      <tr><th style="width:15%"></th><th style="width:40%">Today (what I saw)</th><th>Proposed</th></tr>
+      <tr><td>The unit</td><td>A field or table, inside a category on a person's profile</td><td>An object type. Its records link to people, or to other objects</td></tr>
+      <tr><td>Rules</td><td>A type per field. Text can have a length or pattern; dates can't be validated</td><td>Rules per field, including dates and rules across fields ("expiry after issue")</td></tr>
+      <tr><td>History</td><td>Switched on per field ("Historical field")</td><td>Kept for every record by default</td></tr>
+      <tr><td>Access</td><td>Set per category or field; new ones start with all permissions off</td><td>A policy on the object type, decided during setup, inherited only when safe</td></tr>
+      <tr><td>Reading it</td><td>Custom table data needs a separate API call per employee, per table</td><td>One way to read any object type, the same for every product</td></tr>
+    </table>
+    <p class="fine">"Today" comes from the demo's settings screens and HiBob's public API docs. "Proposed" is my recommendation.</p>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>The biggest change is the unit. Today the building block is a field or table that lives in a category on a person. In the proposal it's an object type: something with its own identity that people link to. A custom table is really a special case of that: an object linked to a person, many per person. That's what makes the move in A2 possible.</p>
+    <p>Everything else follows from the unit: rules, history and access attach to the object type once, instead of being set field by field, and every product reads the same definition.</p>
+  </aside>
+</section>
+
+<!-- A2 -->
+<section class="slide" data-key="a2">
+  <a class="backref" data-goto="model">← Back to the model</a>
+  <p class="eyebrow">Appendix A2 · Behind the screens</p>
+  <h2 class="t">Moving today's custom tables without breaking anyone</h2>
+  <div class="body steps4" style="margin-top:calc(var(--s)*4)">
+    <div class="st"><div class="n">1 · Map</div><div class="it">Each custom table becomes an object type</div>
+      <div class="sub">It already is one in shape: linked to a person, many per person. Fields map across one to one.</div></div>
+    <div class="st"><div class="n">2 · Run both</div><div class="it">Old paths keep working</div>
+      <div class="sub">Profiles, reports, flows and API calls built on the table read from the new model, unchanged.</div></div>
+    <div class="st"><div class="n">3 · Move, customer by customer</div><div class="it">With a way back</div>
+      <div class="sub">Clean-up with the customer: duplicates merged, loose fields moved in (the prototype's step 3).</div></div>
+    <div class="st"><div class="n">4 · Retire</div><div class="it">Old paths go, with notice</div>
+      <div class="sub">Only once usage of the old paths has dropped, and integrators have had time to switch.</div></div>
+  </div>
+  <div class="rows" style="margin-top:calc(var(--s)*4.4);max-width:calc(var(--s)*118)">
+    <div class="r"><span class="k">Check before each move</span><span class="v">Same people see the same data. Same report results. Integrations still get what they expect. No values lost or guessed.</span></div>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>The transition matters as much as the end state, because most of the need comes from existing customers who already have custom tables and integrations built on them.</p>
+    <p>Step 2 is an assumption to test with engineering: that existing tables can be served through the new model while old endpoints and reports keep their shape. If that's expensive, the fallback is a longer "run both" period with the old model as the source of truth for customers who haven't moved.</p>
+    <p>The checks are the release gate for each customer: access parity, report parity, integration parity and data quality.</p>
+  </aside>
+</section>
+
+<!-- A3 -->
+<section class="slide" data-key="a3">
+  <a class="backref" data-goto="model">← Back to the model</a>
+  <p class="eyebrow">Appendix A3 · Behind the screens</p>
+  <h2 class="t">Questions I'd bring to engineering first</h2>
+  <div class="body qs" style="margin-top:calc(var(--s)*3.4)">
+    <div><b>Records nobody owns</b>How should access work for a record not linked to a person, like a laptop in stock?</div>
+    <div><b>Kinds of links</b>One-to-many (a person's certifications) and many-to-many (a programme and its participants): what does each cost?</div>
+    <div><b>History and dates</b>Should object records be effective-dated, or keep a simpler change history?</div>
+    <div><b>What's already there</b>How much of the layer behind job profiles and positions could objects reuse?</div>
+    <div><b>Serving old paths</b>Can today's table endpoints and reports read from the new model without changing shape?</div>
+    <div><b>Limits</b>How many object types, fields and records per customer before performance or reports suffer?</div>
+  </div>
+  <aside class="notes">
+    <p class="h">Notes</p>
+    <p>These are questions, not claims. I don't know how Bob stores custom data today. The answers decide the order of the delivery phases, and whether objects can start alongside phases 1 and 2.</p>
+  </aside>
+</section>
+
 <div class="prog" id="prog"></div>
 <div id="count"></div>
 
@@ -477,6 +617,13 @@ if (READ) {
   setTimeout(jump, 0); window.addEventListener('load', jump);
   slides.forEach((s, i) => { s.id = 's' + (i+1); s.dataset.n = (i+1) + ' / ' + slides.length; const n = s.querySelector('.notes'); if (n) { n.classList.add('moved'); s.after(n); } });
 }
+// links between slides (the model slide and its appendix): jump when presenting, scroll when reading
+document.addEventListener('click', e=>{
+  const g = e.target.closest('[data-goto]'); if(!g) return;
+  e.preventDefault(); e.stopPropagation();
+  const i = slides.findIndex(s=>s.dataset.key===g.dataset.goto); if(i<0) return;
+  if(READ) slides[i].scrollIntoView({behavior:'smooth'}); else show(i);
+}, true);
 function show(i){
   cur = Math.max(0, Math.min(slides.length-1, i));
   slides.forEach((s,k)=>s.classList.toggle('on', k===cur));

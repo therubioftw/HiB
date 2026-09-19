@@ -177,6 +177,29 @@
   .think div.done::before{content:"✓ ";color:var(--ok);font-weight:700}
   .think div.run::before{content:"… ";color:var(--pink)}
 
+  /* behind the scenes: the model being built */
+  .btsbtn{border:1px solid #cfc6ca;background:#fff;color:var(--ink);border-radius:16px;padding:5px 12px;font-weight:600;font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+  .btsbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .btsbtn code{font:600 12px ui-monospace,Consolas,monospace}
+  .bts{position:fixed;top:52px;right:0;bottom:0;width:430px;background:#1e1519;color:#efe7eb;z-index:35;display:flex;flex-direction:column;
+    box-shadow:-10px 0 30px rgba(0,0,0,.2)}
+  .bts .bh{padding:16px 18px 12px;border-bottom:1px solid #3a2e33;display:flex;gap:10px;align-items:flex-start}
+  .bts .bh b{font-size:15px}
+  .bts .bh .sub{color:#b9aab1;font-size:12.5px;margin-top:2px}
+  .bts .bh .x{color:#b9aab1;margin-left:auto} .bts .bh .x:hover{background:#3a2e33;color:#fff}
+  .bts .bb{padding:14px 18px 18px;overflow:auto;flex:1}
+  .bts pre{font:12.5px/1.6 ui-monospace,Consolas,"Courier New",monospace;background:#2a1f24;border-radius:8px;padding:12px 14px;margin:0;white-space:pre-wrap;color:#efe7eb}
+  .bts pre .k{color:#f3a7cb} .bts pre .c{color:#8f8087} .bts pre .v{color:#a8e0c4}
+  .bts .sec{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#f3a7cb;font-weight:700;margin:18px 0 8px}
+  .bts .rd{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .bts .rd div{border:1px solid #3a2e33;border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600}
+  .bts .rd div span{display:block;font-weight:400;color:#b9aab1;font-size:11.5px}
+  .bts .rd div.later{border-style:dashed;color:#b9aab1}
+  .bts .fn{font-size:11.5px;color:#8f8087;margin-top:14px}
+  body.bts-open main{padding-right:462px}
+  body.bts-open .set,body.bts-open .pbody{grid-template-columns:1fr} body.bts-open .snav,body.bts-open .psec{display:none}
+  body.bts-open .cmp{right:446px}
+
   /* guide */
   .guide{position:fixed;left:76px;bottom:16px;width:360px;background:var(--ink);color:#fff;border-radius:12px;padding:14px 16px 12px;z-index:45;
     box-shadow:0 10px 30px rgba(0,0,0,.25)}
@@ -221,6 +244,7 @@
     .cmp{left:10px;right:10px;width:auto;bottom:10px;max-height:calc(100vh - 70px)}
     .guide{left:10px;right:10px;width:auto;bottom:10px}
     body.cmp-open .guide{display:none}
+    .bts{width:auto;left:0;top:52px} body.bts-open main{padding-right:12px} body.bts-open .guide{display:none} body.bts-open .cmp{right:10px;z-index:50}
     .intro{padding:22px 20px 20px} .intro h2{font-size:21px}
   }
 </style>
@@ -240,6 +264,7 @@
 <main id="main"></main>
 <div id="cmp"></div>
 <div id="guide"></div>
+<div id="bts"></div>
 <div id="toast"></div>
 <div id="veil"></div>
 
@@ -296,11 +321,11 @@ const PROFILE = {name:'Priya Nair', title:'Operations Coordinator', dept:'Operat
    State
    ============================================================ */
 const S = { view:'objects', path:null, tab:'structure', fields:[], name:'', desc:'', reminder:true, move:true, archive:true,
-            created:false, cmp:false, chat:[], thinking:null, step:1, useView:null, guideMini:false };
+            created:false, cmp:false, chat:[], thinking:null, step:1, useView:null, guideMini:false, bts:false };
 
 const STEPS = [
   {t:'Describe what you need', d:'An HR systems admin wants to track certifications. Instead of adding fields one by one, she describes the need to Companion.', go:()=>{ openDescribe(); }},
-  {t:'AI drafts it', d:'Companion proposes a structure: an object with typed fields and rules, a link to people, and a reminder. Nothing is created yet.', go:()=>{ ensureDraft(); S.cmp=false; S.view='wizard'; S.tab='structure'; render(); }},
+  {t:'AI drafts it', d:'Companion proposes a structure: an object with typed fields and rules, a link to people, and a reminder. Nothing is created yet. Tip: "Behind the scenes" shows the model being built.', go:()=>{ ensureDraft(); S.cmp=false; S.view='wizard'; S.tab='structure'; render(); }},
   {t:'It finds what exists', d:'Three fields already hold certification data. The draft offers to move that data into the new object, so the admin doesn\'t start from zero.', go:()=>{ ensureDraft(); S.cmp=false; S.view='wizard'; S.tab='existing'; render(); }},
   {t:'Review access and approve', d:'Access is decided as part of setup: inherit where it\'s safe, private where it isn\'t, and the admin sees exactly who will see it.', go:()=>{ ensureDraft(); S.cmp=false; S.view='wizard'; S.tab='access'; render(); }},
   {t:'Use it', d:'Once approved, certifications show up on profiles, in reports and in Companion\'s answers.', go:()=>{ ensureDraft(); if(!S.created) create(true); S.view='use'; S.useView=S.useView||'profile'; render(); }}
@@ -444,7 +469,7 @@ function vWizard(){
   const back = S.tab==='access'?'existing':S.tab==='existing'?'structure':null;
   return `<h1 class="pg">Settings</h1><div class="set">${settingsNav('objects')}
     <div class="card"><div class="hd"><h2>${S.path==='ai'?'<span class="ai spark"></span> ':''}New object${S.name?': '+esc(S.name):''}</h2>
-      <span class="sub" style="margin-left:auto">${S.path==='ai'?'Drafted by Companion':'Built by hand'}</span></div>
+      <span class="sub" style="margin-left:auto">${S.path==='ai'?'Drafted by Companion':'Built by hand'}</span>${btsBtn()}</div>
       ${tabsBar()}
       <div class="bd">${body}</div>
       <div class="wz-foot">${back?`<button class="btn out" data-tab="${back}">Back</button>`:`<button class="btn out" data-go="objects">Cancel</button>`}
@@ -484,8 +509,46 @@ function vUse(){
   const b = (k,l)=>`<button class="btn ${S.useView===k?'pri':'out'}" data-use="${k}">${l}</button>`;
   return `<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
       <span class="sub" style="margin-right:4px">See it in use:</span>${b('profile','On a profile')}${b('report','In a report')}${b('companion','Ask Companion')}
-      <button class="btn ghost" data-go="objects" style="margin-left:auto">Back to Objects</button></div>
+      <span style="margin-left:auto;display:flex;gap:8px;align-items:center">${btsBtn()}<button class="btn ghost" data-go="objects">Back to Objects</button></span></div>
     ${S.useView==='report'?vReport():vProfile()}`;
+}
+
+/* ============================================================
+   Behind the scenes: the object definition every product reads
+   ============================================================ */
+const slug = s => (s||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'') || 'untitled';
+const btsBtn = () => `<button class="btsbtn ${S.bts?'on':''}" data-act="bts" title="See the model behind the screen"><code>&lt;/&gt;</code> Behind the scenes</button>`;
+function renderBts(){
+  document.body.classList.toggle('bts-open', S.bts);
+  if(!S.bts){ $('#bts').innerHTML=''; return; }
+  const n = S.name || 'Untitled object', k = t=>`<span class="k">${t}</span>`, c = t=>`<span class="c">${t}</span>`, v = t=>`<span class="v">${esc(t)}</span>`;
+  const w = Math.max(10, ...S.fields.map(f=>slug(f.name).length)) + 2;
+  const fields = S.fields.length ? S.fields.map(f=>`  ${v(slug(f.name).padEnd(w))}${esc(f.type.toLowerCase().padEnd(12))}${f.req?'required ':''}${f.rule?c('# '+esc(f.rule)):''}`).join('\n') : `  ${c('# no fields yet')}`;
+  const hasExpiry = S.fields.some(f=>/expir/i.test(f.name) && f.type==='Date');
+  const hasFile = S.fields.some(f=>f.type==='Document');
+  const def = [
+    `${k('object_type:')} ${v(slug(n))}`,
+    `${k('label:')}       ${esc(n)}`,
+    `${k('description:')} ${S.desc?esc(S.desc):c('# none yet: the AI reads this')}`,
+    `${k('links:')}       person ${c('# many per person')}`,
+    `${k('history:')}     every record`,
+    `${k('fields:')}`, fields,
+    `${k('access:')}`,
+    `  records:  inherit ${c('# Professional Summary: uniform, not sensitive')}`,
+    hasFile ? `  ${v(slug(S.fields.find(f=>f.type==='Document').name))}: private ${c('# HR admins, HR team, the person')}` : '',
+    (S.reminder && hasExpiry) ? `${k('events:')}\n  ${v('expiry_date')} - 30 days -> notify manager, person` : '',
+    S.move && S.path==='ai' ? `${k('migrate_from:')}\n  work.certifications, professional_summary.certificates,\n  skills.training_certificates ${c('# '+MOVED+' values; archive after')}` : ''
+  ].filter(Boolean).join('\n');
+  $('#bts').innerHTML = `<aside class="bts"><div class="bh"><div><b>Behind the scenes</b><div class="sub">The definition of ${esc(n)}, as every Bob product will read it. It updates as you edit.</div></div>
+      <button class="x" data-act="bts" aria-label="Close">×</button></div>
+    <div class="bb"><pre>${def}</pre>
+      <div class="sec">Read by</div>
+      <div class="rd"><div>Profiles<span>a section per object</span></div><div>Reports<span>every field and link</span></div>
+        <div>Import<span>bulk, from a spreadsheet</span></div><div>Companion<span>types, links, descriptions</span></div>
+        <div class="later">Workflows<span>phase 4 (the reminder)</span></div><div class="later">Public API<span>phase 4</span></div></div>
+      <div class="sec">Why this matters</div>
+      <div style="font-size:12.5px;color:#d9ccd2;line-height:1.5">Every product reads the same definition, so nothing needs to be set up twice. The AI understands the data through it: the types, the link to people, and the descriptions.</div>
+      <div class="fn">An illustration of the model, not a real file format.</div></div></aside>`;
 }
 
 /* ============================================================
@@ -592,17 +655,19 @@ document.addEventListener('click', e=>{
   else if(a==='create'){ if(S.name && S.fields.length) create(false); }
   else if(a==='remind'){ S.chat.push({html:`Done. I've queued reminders to Lena Fischer and Dana Levi. <span class="sub">(Prototype: nothing is sent.)</span>`}); renderCmp(); }
   else if(a==='noop'){ toast('Not part of this prototype.'); }
+  else if(a==='bts'){ S.bts=!S.bts; render(); }
 });
 document.addEventListener('input', e=>{
   const t = e.target;
   if(t.id==='oname'){ S.name = t.value; const h=$('.card .hd h2'); if(h) h.innerHTML=(S.path==='ai'?'<span class="ai spark"></span> ':'')+'New object'+(S.name?': '+esc(S.name):''); const b=$('#b-create'); if(b) b.disabled=!(S.name&&S.fields.length); }
   else if(t.id==='odesc'){ S.desc = t.value; }
   else if(t.dataset.f!==undefined && t.dataset.k!=='req'){ S.fields[+t.dataset.f][t.dataset.k] = t.value; }
+  renderBts();
 });
 document.addEventListener('change', e=>{
   const t = e.target;
   if(t.id==='oname'){ render(); }
-  if(t.dataset.f!==undefined){ const f=S.fields[+t.dataset.f]; if(t.dataset.k==='req') f.req=t.checked; else f[t.dataset.k]=t.value; }
+  if(t.dataset.f!==undefined){ const f=S.fields[+t.dataset.f]; if(t.dataset.k==='req') f.req=t.checked; else f[t.dataset.k]=t.value; renderBts(); }
 });
 document.addEventListener('keydown', e=>{
   if(e.target.id==='say' && e.key==='Enter' && !e.shiftKey){ e.preventDefault(); say(e.target.value); }
@@ -636,7 +701,7 @@ document.getElementById('guide').addEventListener('click', e=>{
   if(g.dataset.g==='restart'){ restart(); }
 });
 function restart(){
-  Object.assign(S,{view:'objects',path:null,tab:'structure',fields:[],name:'',desc:'',reminder:true,move:true,archive:true,created:false,cmp:false,chat:[],thinking:null,useView:null});
+  Object.assign(S,{view:'objects',path:null,tab:'structure',fields:[],name:'',desc:'',reminder:true,move:true,archive:true,created:false,cmp:false,chat:[],thinking:null,useView:null,bts:false});
   setStep(1,false); render();
 }
 
@@ -662,7 +727,7 @@ function render(){
   if(key !== lastView){ window.scrollTo(0,0); lastView = key; }
   $('#where').textContent = S.view==='use' ? (S.useView==='report'?'Analytics':'People') : 'System Settings';
   $('#main').innerHTML = S.view==='objects' ? vObjects() : S.view==='wizard' ? vWizard() : vUse();
-  rail(); renderCmp(); renderGuide();
+  rail(); renderCmp(); renderGuide(); renderBts();
 }
 render(); intro();
 </script>
