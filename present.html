@@ -215,7 +215,7 @@
 <section class="slide stmt">
   <p class="eyebrow">HiBob · Core HR · Configurable data structures</p>
   <p class="big">Customers can add their own data to Bob. Getting it to work for them is the hard part.</p>
-  <p class="under" style="color:var(--ink-2)">My recommendation: custom objects that admins set up with AI, ready for reports and Bob's AI from day one.</p>
+  <p class="under" style="color:var(--ink-2)">My recommendation: custom objects on one shared model, set up with AI, and ready for reports and Bob's AI from day one.</p>
   <p class="under" style="margin-top:calc(var(--s)*6)">Roy · September 2026</p>
   <aside class="notes">
     <p class="h">Notes</p>
@@ -402,7 +402,7 @@
     <a class="xref" data-goto="a3">A3 · Questions for engineering</a></div>
   <aside class="notes">
     <p class="h">Notes</p>
-    <p>The screens are the visible part. The real product is the model underneath: one definition of an object type that every Bob product reads the same way. That's what makes "ready for reports and AI from day one" possible, and it's where a core data team earns its keep.</p>
+    <p>The screens are the visible part. The real product is the model underneath: one definition of an object type that every Bob product reads the same way. That's what makes "ready for reports and AI from day one" possible, and it's the part a core data team owns.</p>
     <p>This is about the data contract, not the technical architecture: what an object type is made of, and who reads it. How it's stored and served is engineering's call.</p>
     <p>It's also the most direct link to being AI-ready. The AI understands data through the model: types, links between objects, and plain-language descriptions. Good structure is what lets it answer questions correctly.</p>
     <p>Today, per HiBob's public API docs, custom table data isn't returned by the employee search endpoint and needs a separate call per employee, per table. A single model with one way to read any object type is the difference.</p>
@@ -563,7 +563,7 @@
     <div class="st"><div class="n">1 · Map</div><div class="it">Each custom table becomes an object type</div>
       <div class="sub">It already is one in shape: linked to a person, many per person. Fields map across one to one.</div></div>
     <div class="st"><div class="n">2 · Run both</div><div class="it">Old paths keep working</div>
-      <div class="sub">Profiles, reports, flows and API calls built on the table read from the new model, unchanged.</div></div>
+      <div class="sub">Profiles, reports, flows and API calls built on the table read from the new model, unchanged. To confirm with engineering (A3).</div></div>
     <div class="st"><div class="n">3 · Move, customer by customer</div><div class="it">With a way back</div>
       <div class="sub">Clean-up with the customer: duplicates merged, loose fields moved in (the prototype's step 3).</div></div>
     <div class="st"><div class="n">4 · Retire</div><div class="it">Old paths go, with notice</div>
@@ -571,6 +571,7 @@
   </div>
   <div class="rows" style="margin-top:calc(var(--s)*4.4);max-width:calc(var(--s)*118)">
     <div class="r"><span class="k">Check before each move</span><span class="v">Same people see the same data. Same report results. Integrations still get what they expect. No values lost or guessed.</span></div>
+    <div class="r"><span class="k">How we'd know it's going well</span><span class="v">Share of custom tables moved, and parity incidents after a move (target: none).</span></div>
   </div>
   <aside class="notes">
     <p class="h">Notes</p>
