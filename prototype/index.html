@@ -38,7 +38,7 @@
   .proto-tag{position:fixed;top:60px;right:16px;z-index:25;font-size:11px;font-weight:600;color:var(--maroon);background:#fff;
     border:1px solid var(--pink-line);border-radius:12px;padding:3px 10px}
   .proto-tag a{color:var(--maroon)}
-  main{margin:52px 0 0 60px;padding:26px 32px 140px;min-height:calc(100vh - 52px)}
+  main{margin:52px 0 0 60px;padding:26px 32px 230px;min-height:calc(100vh - 52px)}
 
   /* ---------- settings layout ---------- */
   h1.pg{font:600 24px var(--serif);margin:0 0 18px;color:var(--ink-2)}
@@ -129,9 +129,9 @@
   table.acc td{padding:9px 8px;border-bottom:1px solid #f0ecee}
   .yes{color:var(--ok);font-weight:700} .no{color:#b9b0b4}
   .aud{margin-top:14px;font-size:13.5px;background:#faf8f9;border-radius:8px;padding:10px 14px}
-  .where{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
-  .where .w{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px}
-  .where .w b{display:block}
+  .whr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+  .whr .w{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px}
+  .whr .w b{display:block}
   .h4{font-size:14px;font-weight:700;margin:24px 0 8px}
 
   /* profile */
@@ -207,9 +207,21 @@
 
   @media (max-width:900px){
     .set,.pbody{grid-template-columns:1fr} .snav,.psec{display:none}
-    .found,.where{grid-template-columns:1fr 1fr} .row2{grid-template-columns:1fr}
-    .cmp{left:10px;right:10px;width:auto} .guide{left:10px;right:10px;width:auto}
-    main{padding:20px 14px 200px}
+    .found,.whr{grid-template-columns:1fr 1fr} .row2{grid-template-columns:1fr}
+    .rail{display:none}
+    .set > *,.pbody > *{min-width:0}
+    main{margin-left:0;padding:48px 12px 220px}
+    .top{gap:10px;padding:0 12px} .top .search,.top #where{display:none} .top .cmpbtn{margin-left:auto}
+    .proto-tag{left:12px;right:12px;text-align:center}
+    .card .bd{overflow-x:auto}
+    table.ft,table.rec,table.acc{min-width:620px}
+    .wz-tabs{overflow-x:auto;padding:0 10px} .wz-tabs button{white-space:nowrap}
+    .wz-foot{flex-wrap:wrap} .wz-foot .sub{order:3;width:100%}
+    .objrow{grid-template-columns:40px 1fr} .objrow .btn{grid-column:1 / -1;justify-self:start}
+    .cmp{left:10px;right:10px;width:auto;bottom:10px;max-height:calc(100vh - 70px)}
+    .guide{left:10px;right:10px;width:auto;bottom:10px}
+    body.cmp-open .guide{display:none}
+    .intro{padding:22px 20px 20px} .intro h2{font-size:21px}
   }
 </style>
 </head>
@@ -376,7 +388,7 @@ function vStructure(){
       <tbody>${rows || `<tr><td colspan="6" class="sub" style="padding:18px 8px">No fields yet. Add the first one.</td></tr>`}</tbody></table>
     <button class="btn ghost" data-act="addfield" style="margin-top:8px">+ Add field</button>
     <div class="wfcard"><div class="ic">⏰</div>
-      <div><b>Expiry reminder</b>${ai?' <span class="why ai">✦ from your request</span>':''}<div class="sub">30 days before <b>Expiry date</b>, notify the person's manager and the person.</div></div>
+      <div><b>Expiry reminder</b>${ai?' <span class="why ai">✦ from your request; I added the person too</span>':''}<div class="sub">30 days before <b>Expiry date</b>, notify the person's manager and the person.</div></div>
       <button class="tog ${S.reminder?'on':''}" data-act="reminder" aria-label="Reminder on or off"></button></div>`;
 }
 
@@ -407,14 +419,14 @@ function vAccess(){
     ['The person','See own · edit with approval','See own']
   ];
   return `
-    <div class="why-box"><span class="ai">✦</span> <b>Why this access.</b> Certifications will sit next to <b>Professional Summary</b>, whose permissions are the same for everyone,
+    <div class="why-box"><span class="ai">✦</span> <b>Why this access.</b> On profiles, certifications will sit next to <b>Professional Summary</b>. Its permissions are the same for every field in it (not mixed),
       and certification names and dates aren't sensitive, so the record <b>inherits</b> those permissions.
       The <b>Certificate file</b> can contain ID numbers, so it starts <b>private</b>: HR and the person only.</div>
     <table class="acc"><thead><tr><th>Group</th><th>${esc(n)} records</th><th>Certificate file</th></tr></thead><tbody>
       ${g.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table>
     <div class="aud">👥 <b>4 groups</b> will see ${esc(n.toLowerCase())} records. <b>3 groups</b> will see the file. <a href="#" data-act="noop">Change who sees it</a></div>
     <div class="h4">Where it shows up once approved</div>
-    <div class="where">
+    <div class="whr">
       <div class="w"><b>Profiles</b><span class="sub">A new "${esc(plural(n))}" section</span></div>
       <div class="w"><b>Reports</b><span class="sub">Every field is reportable</span></div>
       <div class="w"><b>Import</b><span class="sub">Bulk upload from a spreadsheet</span></div>
@@ -481,6 +493,7 @@ function vUse(){
    ============================================================ */
 function renderCmp(){
   $('#cmpbtn').classList.toggle('on', S.cmp);
+  document.body.classList.toggle('cmp-open', S.cmp);
   if(!S.cmp){ $('#cmp').innerHTML=''; return; }
   const msgs = S.chat.map(m=> m.me ? `<div class="msg me">${esc(m.text)}</div>` :
     `<div class="msg bot"><div class="who">✦ Companion</div>${m.html}</div>`).join('');
@@ -635,7 +648,7 @@ function intro(){
     <div class="k">Prototype</div><h2>Custom objects in Bob</h2>
     <p>An HR systems admin at a growing company needs to track certifications. Today that means adding fields one by one, often next to fields that already exist. Here, she describes what she needs and reviews what Companion drafts.</p>
     <ol><li>Describe what you need</li><li>AI drafts it</li><li>It finds what exists</li><li>Review access and approve</li><li>Use it</li></ol>
-    <div class="fine">A clickable mock-up of Bob. People, numbers and Companion's answers are made up and scripted. The step guide in the corner walks you through; you can also click around freely, or choose "Build it yourself" to try the manual path.</div>
+    <div class="fine">It shows where the plan ends up (custom objects, AI setup and the reminder: phases 2 to 4 on the delivery slide), not the first release. A clickable mock-up of Bob: people, numbers and Companion's answers are made up and scripted. The step guide in the corner walks you through; you can also click around freely, or choose "Build it yourself" to try the manual path.</div>
     <button class="btn pri" data-intro="go">Start</button></div></div>`;
 }
 $('#veil').addEventListener('click', e=>{ if(e.target.closest('[data-intro]')){ $('#veil').innerHTML=''; const b=$('#b-describe'); if(b){ b.classList.add('pulse'); } } });
